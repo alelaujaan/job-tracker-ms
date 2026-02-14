@@ -1,0 +1,21 @@
+# Java / Maven
+target/
+*.iml
+.idea/
+.mvn/wrapper/maven-wrapper.jar
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+yarn-error.log*
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db

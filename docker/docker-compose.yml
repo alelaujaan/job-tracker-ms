@@ -1,0 +1,58 @@
+services:
+  postgres-applications:
+    image: postgres:15
+    container_name: postgres-applications
+    environment:
+      POSTGRES_DB: applications_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_applications_data:/var/lib/postgresql/data
+
+  job-scraper-python:
+    build:
+      context: ../scrappers/job-scrapper-python
+    container_name: job-scraper-python
+    ports:
+      - "8000:8000"
+
+  applications-service:
+    build:
+      context: ../services/application-service
+    container_name: applications-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-applications:5432/applications_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres-applications
+
+  import-service:
+    build:
+      context: ../services/import-service
+    container_name: import-service
+    environment:
+      SCRAPER_BASE_URL: http://job-scraper-python:8000
+      APPLICATIONS_BASE_URL: http://applications-service:8081
+    ports:
+      - "8082:8082"
+    depends_on:
+      - job-scraper-python
+      - applications-service
+
+  job-tracker-ui:
+    build:
+      context: ../frontend/job-tracker-ui
+    container_name: job-tracker-ui
+    ports:
+      - "4200:80"
+    depends_on:
+      - import-service
+      - applications-service
+
+volumes:
+  postgres_applications_data:
